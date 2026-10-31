@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starlight Studio Widgets</title>
+<link rel="stylesheet" href="theme.css">
+<style>
+  body { overflow: auto; align-items: flex-start; padding: 32px 16px; }
+  .card { text-align: left; width: min(640px, 100%); }
+  h1 { font-size: 30px; margin: 6px 0 4px; }
+  p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+  ul { list-style: none; margin-top: 14px; }
+  li { padding: 10px 0; border-top: 1px solid var(--glass-line); font-size: 14px; }
+  code { display: block; margin-top: 4px; font-size: 12px; color: var(--accent); word-break: break-all; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">Starlight Studio</div>
+  <h1 class="serif">Notion widgets ✨</h1>
+  <p>In Notion, type <b>/embed</b> and paste one of these links. Add <b>?theme=aurora</b> or <b>?theme=moonbeam</b> to match your theme.</p>
+  <ul>
+    <li>🕰️ Clock <code id="c"></code></li>
+    <li>🍅 Focus timer <code id="t"></code></li>
+  </ul>
+</main>
+<script src="sky.js"></script>
+<script>
+  var base = location.href.replace(/index\.html.*$/, "").replace(/\?.*$/, "");
+  document.getElementById("c").textContent = base + "clock.html";
+  document.getElementById("t").textContent = base + "timer.html";
+</script>
+</body>
+</html>

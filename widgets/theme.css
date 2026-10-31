@@ -1,0 +1,46 @@
+/* Starlight Studio widgets: shared theme */
+:root {
+  --bg1: #0B1028; --bg2: #1A1F4A; --bg3: #2A2660;
+  --text: #F7F3FF; --muted: #B9B3DA; --accent: #F3D27A; --accent2: #C9BFFF;
+  --glass: rgba(255,255,255,0.07); --glass-line: rgba(255,255,255,0.14);
+  --star: #FFFFFF; --btn-text: #1A1F4A;
+}
+body[data-theme="aurora"] {
+  --bg1: #140F2B; --bg2: #251A47; --bg3: #3A2457;
+  --text: #FFF6FB; --muted: #D9C6E6; --accent: #F4A6C8; --accent2: #9FE3CF;
+  --star: #FFFFFF; --btn-text: #251A47;
+}
+body[data-theme="moonbeam"] {
+  --bg1: #FBF7EF; --bg2: #F4EEF6; --bg3: #E9E2F6;
+  --text: #2E2A63; --muted: #6E64B4; --accent: #C99A3B; --accent2: #6E64B4;
+  --glass: rgba(255,255,255,0.65); --glass-line: rgba(110,100,180,0.18);
+  --star: #6E64B4; --btn-text: #FFFFFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-font-smoothing: antialiased;
+}
+.sky { position: fixed; inset: 0; pointer-events: none; }
+.sky i {
+  position: absolute; width: 2px; height: 2px; border-radius: 50%;
+  background: var(--star); opacity: .5;
+  animation: twinkle var(--d, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes twinkle { 0%,100% { opacity: .15; } 50% { opacity: .9; } }
+.serif { font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif; }
+.card {
+  position: relative; z-index: 1; width: min(560px, 94vw);
+  padding: 22px 24px; border-radius: 22px;
+  background: var(--glass); border: 1px solid var(--glass-line);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  text-align: center;
+}
+.brand { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .sky i { animation: none; } }

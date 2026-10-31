@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starlight Focus Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .modes { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin: 6px 0 8px; }
+  .card { padding: 14px 18px; }
+  .modes button {
+    font: 600 13px "Manrope", system-ui, sans-serif; color: var(--muted);
+    background: transparent; border: 1px solid var(--glass-line); border-radius: 99px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .modes button[aria-pressed="true"] { color: var(--btn-text); background: var(--accent); border-color: var(--accent); }
+  .ring { position: relative; width: clamp(110px, 42vh, 168px); height: clamp(110px, 42vh, 168px); margin: 0 auto; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 9; }
+  .ring .track { stroke: var(--glass-line); }
+  .ring .prog { stroke: url(#g); stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
+  .ring .read { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .clock { font-size: clamp(32px, 13vh, 48px); font-weight: 600; line-height: 1; }
+  .ring .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .controls { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+  .controls button {
+    font: 700 14px "Manrope", system-ui, sans-serif; border-radius: 14px; padding: 8px 16px; cursor: pointer;
+    border: 1px solid var(--glass-line); background: var(--glass); color: var(--text);
+  }
+  .controls .main { background: var(--accent); color: var(--btn-text); border-color: var(--accent); min-width: 110px; }
+  .stars { margin-top: 8px; font-size: 13px; color: var(--muted); min-height: 18px; }
+  button:focus-visible { outline: 2px solid var(--accent2); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">Starlight focus timer</div>
+  <div class="modes" role="group" aria-label="Timer mode">
+    <button data-min="25" data-label="Focus time" aria-pressed="true">🍅 Focus 25</button>
+    <button data-min="5" data-label="Short break" aria-pressed="false">☕ Break 5</button>
+    <button data-min="15" data-label="Long break" aria-pressed="false">🌙 Rest 15</button>
+  </div>
+  <div class="ring">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent2)"/><stop offset="1" style="stop-color:var(--accent)"/></linearGradient></defs>
+      <circle class="track" cx="50" cy="50" r="44"/>
+      <circle class="prog" id="prog" cx="50" cy="50" r="44"/>
+    </svg>
+    <div class="read"><div class="clock serif" id="clock" aria-live="polite">25:00</div><div class="label" id="label">Focus time</div></div>
+  </div>
+  <div class="controls">
+    <button class="main" id="go">▶ Start</button>
+    <button id="reset" aria-label="Reset">↺</button>
+  </div>
+  <div class="stars" id="stars"></div>
+</main>
+<script src="sky.js"></script>
+<script>
+  var C = 2 * Math.PI * 44, prog = document.getElementById("prog");
+  prog.style.strokeDasharray = C;
+  var total = 25 * 60, left = total, running = false, endAt = 0, timer = null, label = "Focus time";
+  var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  var todayKey = "starlight-sessions-" + new Date().toDateString();
+  var done = parseInt(store.get(todayKey) || "0", 10) || 0;
+
+  function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return (m < 10 ? "0" : "") + m + ":" + (r < 10 ? "0" : "") + r; }
+  function draw() {
+    document.getElementById("clock").textContent = fmt(left);
+    prog.style.strokeDashoffset = C * (1 - left / total);
+    document.title = (running ? "⏳ " : "") + fmt(left) + " · Starlight";
+    document.getElementById("stars").textContent = done ? "Today: " + "⭐".repeat(Math.min(done, 12)) + (done > 12 ? " +" + (done - 12) : "") : "Finish a focus round to earn a ⭐";
+  }
+  function chime() {
+    try {
+      var a = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 880, 990].forEach(function (f, i) {
+        var o = a.createOscillator(), g = a.createGain();
+        o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(a.destination);
+        var t = a.currentTime + i * 0.22;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+        o.start(t); o.stop(t + 0.65);
+      });
+    } catch (e) {}
+  }
+  function step() {
+    left = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+    if (left === 0) {
+      stop();
+      if (label === "Focus time") { done++; store.set(todayKey, String(done)); }
+      chime();
+      document.getElementById("label").textContent = label === "Focus time" ? "Well done, star! 🌟" : "Ready to focus? ✨";
+    }
+    draw();
+  }
+  function start() { running = true; endAt = Date.now() + left * 1000; timer = setInterval(step, 250); document.getElementById("go").textContent = "❚❚ Pause"; }
+  function stop() { running = false; clearInterval(timer); document.getElementById("go").textContent = "▶ Start"; }
+  function setMode(btn) {
+    stop();
+    document.querySelectorAll(".modes button").forEach(function (b) { b.setAttribute("aria-pressed", b === btn ? "true" : "false"); });
+    total = left = parseInt(btn.dataset.min, 10) * 60; label = btn.dataset.label;
+    document.getElementById("label").textContent = label; draw();
+  }
+  document.querySelectorAll(".modes button").forEach(function (b) { b.addEventListener("click", function () { setMode(b); }); });
+  document.getElementById("go").addEventListener("click", function () {
+    if (running) stop(); else { if (left === 0) left = total; document.getElementById("label").textContent = label; start(); }
+  });
+  document.getElementById("reset").addEventListener("click", function () { stop(); left = total; document.getElementById("label").textContent = label; draw(); });
+  draw();
+</script>
+</body>
+</html>

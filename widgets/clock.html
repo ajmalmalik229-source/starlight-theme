@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starlight Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .greet { font-size: 15px; font-weight: 600; color: var(--accent2); margin-bottom: 2px; }
+  .time { font-size: clamp(56px, 17vw, 92px); line-height: 1; font-weight: 600; letter-spacing: -.01em; }
+  .time small { font-family: "Manrope", system-ui, sans-serif; font-size: .22em; font-weight: 700; color: var(--accent); margin-left: 6px; letter-spacing: .06em; }
+  .date { margin-top: 6px; font-size: 15px; color: var(--muted); }
+  .bar { margin: 14px auto 6px; height: 6px; width: 78%; border-radius: 99px; background: var(--glass-line); overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width .6s ease; }
+  .left { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main class="card" aria-live="polite">
+  <div class="greet" id="greet">Hello, star ✨</div>
+  <div class="time serif" id="time">--:--</div>
+  <div class="date" id="date"></div>
+  <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+  <div class="left" id="left"></div>
+</main>
+<script src="sky.js"></script>
+<script>
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function tick() {
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes();
+    var g = h < 5 ? "Still up, star? 🌙" : h < 12 ? "Good morning, star ☀️" : h < 17 ? "Good afternoon, star 🌤️" : h < 21 ? "Good evening, star 🌙" : "Good night, star ✨";
+    document.getElementById("greet").textContent = g;
+    var h12 = h % 12 || 12;
+    document.getElementById("time").innerHTML = h12 + ":" + pad(m) + "<small>" + (h < 12 ? "AM" : "PM") + "</small>";
+    document.getElementById("date").textContent = d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+    var mins = h * 60 + m, pct = Math.round(mins / 1440 * 100);
+    document.getElementById("bar").style.width = pct + "%";
+    document.getElementById("left").textContent = "✨ " + (100 - pct) + "% of today left";
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
